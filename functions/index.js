@@ -45,14 +45,32 @@ async function handleEvent(event) {
   if (event.type !== "message" || event.message.type !== "text") {
     return Promise.resolve(null);
   }
-  
+  const documentArray = []
+  const getRandomElement = (array) => {
+    let min = 0
+    let max = array.length-1
+    let randomIndex = Math.floor(Math.random() * (max - min + 1) + min)
+    return array[randomIndex]
+  }
+
   try {
     const db = admin.firestore()
-    const doc = await db.collection("news").doc("K6O5Jnqk4g1EFien29Ru").get()
-    const news = doc.data()
+    // const doc = await db.collection("news").doc("K6O5Jnqk4g1EFien29Ru").get()
+    await db.collection("news")
+        .get().then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+            documentArray.push({
+              category: doc.data().category,
+              sourceUrl: doc.data().sourceUrl,
+              createdAt: doc.data().createdAt,
+            });
+          });
+        });
+    
+    const replyUrl = getRandomElement(documentArray).sourceUrl
     return client.replyMessage(event.replyToken, {
       type: "text",
-      text: news.sourceUrl // 返信のテキストが入る箇所
+      text: replyUrl // 返信のテキストが入る箇所
     });
   } catch (e) {
     console.error(e)
@@ -86,7 +104,7 @@ exports.app = functions.https.onRequest(app);
 // タイマーで実行されるプッシュメッセージの送信のfunction
 // scheduleの()内にcronコマンドで書いて、日時指定する。例 "30 11 * * 3"毎週水曜11:30
 // テスト 毎分 "* * * * *"
-exports.scheduledFunc = functions
+/*exports.scheduledFunc = functions
     .region("asia-northeast1")
     .pubsub.schedule("30 11 * * 3")
     .onRun(async () => {
@@ -164,3 +182,4 @@ exports.scheduledFunc = functions
             functions.logger.error(err);
           });
     });
+*/
