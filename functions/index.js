@@ -11,6 +11,9 @@ exports.helloWorld = functions.https.onRequest((request, response) => {
 "use strict";
 
 const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+admin.initializeApp();
+
 const express = require("express");
 const app = express();
 const line = require("@line/bot-sdk");
@@ -42,12 +45,41 @@ async function handleEvent(event) {
   if (event.type !== "message" || event.message.type !== "text") {
     return Promise.resolve(null);
   }
-
-  return client.replyMessage(event.replyToken, {
-    type: "text",
-    text: event.message.text, // 実際に返信の言葉を入れる箇所
-  });
+  
+  try {
+    const db = admin.firestore()
+    const doc = await db.collection("news").doc("K6O5Jnqk4g1EFien29Ru").get()
+    const news = doc.data()
+    return client.replyMessage(event.replyToken, {
+      type: "text",
+      text: news.sourceUrl // 返信のテキストが入る箇所
+    });
+  } catch (e) {
+    console.error(e)
+  }
 }
+/*
+async function fetchNewsData() {
+  const news =[];
+  try {
+    const db = admin.firestore();
+    await db.collection("news")
+        .get().then(function(querySnapshot) {
+          querySnapshot.forEach(function(doc) {
+            news.push({
+              category: doc.data().category,
+              sourceUrl: doc.data().sourceUrl,
+              createdAt: doc.data().createdAt,
+            });
+          });
+        });
+
+    return news[0].sourceUrl;
+  } catch (e) {
+    console.error(e);
+    response.status(500).send(e);
+  }
+}*/
 
 exports.app = functions.https.onRequest(app);
 
