@@ -245,7 +245,7 @@ exports.replyAdviceWorry = {
 };
 
 // 想定外への応答
-const replyUnexpected = {
+exports.replyUnexpected = {
   "type": "text",
   "text": "ごめん、それはよくわからないわ $",
   "emojis": [
